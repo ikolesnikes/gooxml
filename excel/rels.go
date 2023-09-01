@@ -1,6 +1,9 @@
 package excel
 
-import "encoding/xml"
+import (
+	"encoding/xml"
+	"fmt"
+)
 
 const (
 	RELOfficeDocument = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument"
@@ -20,7 +23,8 @@ func newRelationships() *relationships {
 // newID returns a new id for an relationship. All ids within the part
 // must be unique.
 func (rels *relationships) newID() string {
-	return "rId1"
+	id := len(rels.rs) + 1
+	return fmt.Sprintf("rId%d", id)
 }
 
 func (rels *relationships) add(rel *relationship) {
