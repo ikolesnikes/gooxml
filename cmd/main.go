@@ -3,14 +3,15 @@ package main
 // Using gooxml module
 
 import (
-	"gooxml/excel"
 	"os"
+
+	"github.com/ikolesnikes/gooxml/excel"
 )
 
 func main() {
 	doc := excel.NewDocument()
 
-	f, err := os.Create("sample.xlsx")
+	f, err := os.Create("/tmp/sample.xlsx")
 	if err != nil {
 		panic(err)
 	}
