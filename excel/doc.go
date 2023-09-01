@@ -4,6 +4,7 @@ import (
 	"archive/zip"
 	"bytes"
 	"encoding/xml"
+	"fmt"
 	"io"
 )
 
@@ -25,6 +26,11 @@ func NewDocument() *Document {
 	}
 	doc.addWorkbook()
 	return &doc
+}
+
+// Workbook returns the document's workbook.
+func (doc *Document) Workbook() *Workbook {
+	return doc.wkb
 }
 
 func (doc *Document) addWorkbook() {
@@ -50,16 +56,19 @@ func (doc *Document) Save(w io.Writer) error {
 	// workbook relationships
 	// worksheets
 
-	var parts = []*struct {
+	type partDesc struct {
 		path string
 		part xml.Marshaler
 		body *bytes.Buffer
-	}{
+	}
+	var parts = []*partDesc{
 		{"[Content_Types].xml", doc.cts, nil},
 		{"_rels/.rels", doc.rels, nil},
 		{"xl/workbook.xml", doc.wkb, nil},
 		{"xl/_rels/workbook.xml.rels", doc.wkb.rels, nil},
-		{"xl/worksheets/sheet1.xml", doc.wkb.sheets[0], nil},
+	}
+	for _, wks := range doc.wkb.sheets {
+		parts = append(parts, &partDesc{fmt.Sprintf("xl/worksheets/sheet%d.xml", wks.id), wks, nil})
 	}
 
 	// This can be done in parallel

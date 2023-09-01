@@ -2,11 +2,18 @@ package excel
 
 import "encoding/xml"
 
+// A worksheet
 type Worksheet struct {
+	id  int
+	rel *relationship
 }
 
-func newWorksheet() *Worksheet {
-	wks := Worksheet{}
+// newWorksheet creates and initializes a new worksheet.
+func newWorksheet(id int, rel *relationship) *Worksheet {
+	wks := Worksheet{
+		id:  id,
+		rel: rel,
+	}
 	return &wks
 }
 

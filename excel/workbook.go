@@ -1,6 +1,9 @@
 package excel
 
-import "encoding/xml"
+import (
+	"encoding/xml"
+	"fmt"
+)
 
 // A workbook inside an Excel document.
 type Workbook struct {
@@ -20,10 +23,24 @@ func newWorkbook(doc *Document) *Workbook {
 }
 
 func (wkb *Workbook) AddWorksheet() {
-	wks := newWorksheet()
-	wkb.sheets = append(wkb.sheets, wks)
-	wkb.rels.add(newRelationship(wkb.rels.newID(), RELWorksheet, "worksheets/sheet1.xml"))
-	wkb.doc.cts.add(newContentTypeOverride("/xl/worksheets/sheet1.xml", CTWorksheet))
+	// New worksheet's id and file name
+	id := wkb.newSheetID()
+	fName := fmt.Sprintf("sheet%d.xml", id)
+
+	// Workbook -> Worksheet relationship item
+	rel := newRelationship(wkb.rels.newID(), RELWorksheet, fmt.Sprintf("worksheets/%s", fName))
+	wkb.rels.add(rel)
+
+	// Add new worksheet to the collection
+	wkb.sheets = append(wkb.sheets, newWorksheet(id, rel))
+
+	// Worksheet's content-type entry
+	wkb.doc.cts.add(newContentTypeOverride(fmt.Sprintf("/xl/worksheets/%s", fName), CTWorksheet))
+}
+
+func (wkb *Workbook) newSheetID() int {
+	id := len(wkb.sheets) + 1
+	return id
 }
 
 func (wkb *Workbook) MarshalXML(enc *xml.Encoder, root xml.StartElement) error {
@@ -48,22 +65,22 @@ func (wkb *Workbook) MarshalXML(enc *xml.Encoder, root xml.StartElement) error {
 	if err := enc.EncodeToken(xml.StartElement{Name: xml.Name{Local: "sheets"}}); err != nil {
 		return err
 	}
-	// for _, s := range w.sheets {
-	e := xml.StartElement{
-		Name: xml.Name{Local: "sheet"},
-		Attr: []xml.Attr{
-			{Name: xml.Name{Local: "name"}, Value: "Sheet1"},
-			{Name: xml.Name{Local: "sheetId"}, Value: "1"},
-			{Name: xml.Name{Local: "r:id"}, Value: "rId1"},
-		},
+	for _, wks := range wkb.sheets {
+		e := xml.StartElement{
+			Name: xml.Name{Local: "sheet"},
+			Attr: []xml.Attr{
+				{Name: xml.Name{Local: "name"}, Value: fmt.Sprintf("Sheet%d", wks.id)},
+				{Name: xml.Name{Local: "sheetId"}, Value: fmt.Sprintf("%d", wks.id)},
+				{Name: xml.Name{Local: "r:id"}, Value: wks.rel.id},
+			},
+		}
+		if err := enc.EncodeToken(e); err != nil {
+			return err
+		}
+		if err := enc.EncodeToken(xml.EndElement{Name: xml.Name{Local: "sheet"}}); err != nil {
+			return err
+		}
 	}
-	if err := enc.EncodeToken(e); err != nil {
-		return err
-	}
-	if err := enc.EncodeToken(xml.EndElement{Name: xml.Name{Local: "sheet"}}); err != nil {
-		return err
-	}
-	// }
 	if err := enc.EncodeToken(xml.EndElement{Name: xml.Name{Local: "sheets"}}); err != nil {
 		return err
 	}
