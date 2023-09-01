@@ -9,7 +9,7 @@ const (
 
 // A relationships part.
 type relationships struct {
-	rels []*relationship
+	rs []*relationship
 }
 
 // newRelationships creates and initializes a new relationships part.
@@ -24,7 +24,7 @@ func (rels *relationships) newID() string {
 }
 
 func (rels *relationships) add(rel *relationship) {
-	rels.rels = append(rels.rels, rel)
+	rels.rs = append(rels.rs, rel)
 }
 
 func (rels *relationships) MarshalXML(enc *xml.Encoder, root xml.StartElement) error {
@@ -45,7 +45,7 @@ func (rels *relationships) MarshalXML(enc *xml.Encoder, root xml.StartElement) e
 		return err
 	}
 
-	if err := enc.EncodeElement(rels.rels, start); err != nil {
+	if err := enc.EncodeElement(rels.rs, start); err != nil {
 		return err
 	}
 
