@@ -65,6 +65,7 @@ func (doc *Document) Save(w io.Writer) error {
 		{"[Content_Types].xml", doc.cts, nil},
 		{"_rels/.rels", doc.rels, nil},
 		{"xl/workbook.xml", doc.wkb, nil},
+		{"xl/sharedStrings.xml", doc.wkb.sst, nil},
 		{"xl/_rels/workbook.xml.rels", doc.wkb.rels, nil},
 	}
 	for _, wks := range doc.wkb.sheets {

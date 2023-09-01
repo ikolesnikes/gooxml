@@ -6,10 +6,11 @@ import "encoding/xml"
 
 // Well known content types.
 const (
-	CTRels      = "application/vnd.openxmlformats-package.relationships+xml"
-	CTXML       = "application/xml"
-	CTWorkbook  = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"
-	CTWorksheet = "application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"
+	CTRels          = "application/vnd.openxmlformats-package.relationships+xml"
+	CTXML           = "application/xml"
+	CTWorkbook      = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"
+	CTWorksheet     = "application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"
+	CTSharedStrings = "application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"
 )
 
 // A collection of content-type items.

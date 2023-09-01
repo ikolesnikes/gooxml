@@ -10,6 +10,7 @@ type Workbook struct {
 	doc    *Document
 	rels   *relationships
 	sheets []*Worksheet
+	sst    *sharedStrings
 }
 
 // newWorkbook creates and initializes a new Workbook.
@@ -18,8 +19,18 @@ func newWorkbook(doc *Document) *Workbook {
 		doc:  doc,
 		rels: newRelationships(),
 	}
+	wkb.addSharedStrings()
 	wkb.AddWorksheet()
 	return &wkb
+}
+
+func (wkb *Workbook) addSharedStrings() {
+	wkb.sst = newSharedStrings()
+
+	rel := newRelationship(wkb.rels.newID(), RELSharedStrings, "sharedStrings.xml")
+	wkb.rels.add(rel)
+
+	wkb.doc.cts.add(newContentTypeOverride("/xl/sharedStrings.xml", CTSharedStrings))
 }
 
 func (wkb *Workbook) AddWorksheet() {
@@ -44,49 +55,46 @@ func (wkb *Workbook) newSheetID() int {
 }
 
 func (wkb *Workbook) MarshalXML(enc *xml.Encoder, root xml.StartElement) error {
-	name := xml.Name{Local: "workbook"}
-
+	workbookName := xml.Name{Local: "workbook"}
+	sheetsName := xml.Name{Local: "sheets"}
 	start := xml.StartElement{
-		Name: name,
+		Name: workbookName,
 		Attr: []xml.Attr{
 			{Name: xml.Name{Local: "xmlns"}, Value: NSSpreadsheetML},
 			{Name: xml.Name{Local: "xmlns:r"}, Value: NSOfficeDocRels},
 		},
 	}
-
 	tokens := []xml.Token{
 		xmlProlog,
 		start,
+		xml.StartElement{Name: sheetsName},
 	}
 	if err := encodeTokens(tokens, enc); err != nil {
 		return err
 	}
 
-	if err := enc.EncodeToken(xml.StartElement{Name: xml.Name{Local: "sheets"}}); err != nil {
-		return err
-	}
+	sheetName := xml.Name{Local: "sheet"}
 	for _, wks := range wkb.sheets {
-		e := xml.StartElement{
-			Name: xml.Name{Local: "sheet"},
+		start := xml.StartElement{
+			Name: sheetName,
 			Attr: []xml.Attr{
 				{Name: xml.Name{Local: "name"}, Value: fmt.Sprintf("Sheet%d", wks.id)},
 				{Name: xml.Name{Local: "sheetId"}, Value: fmt.Sprintf("%d", wks.id)},
 				{Name: xml.Name{Local: "r:id"}, Value: wks.rel.id},
 			},
 		}
-		if err := enc.EncodeToken(e); err != nil {
+		tokens := []xml.Token{
+			start,
+			xml.EndElement{Name: sheetName},
+		}
+		if err := encodeTokens(tokens, enc); err != nil {
 			return err
 		}
-		if err := enc.EncodeToken(xml.EndElement{Name: xml.Name{Local: "sheet"}}); err != nil {
-			return err
-		}
-	}
-	if err := enc.EncodeToken(xml.EndElement{Name: xml.Name{Local: "sheets"}}); err != nil {
-		return err
 	}
 
-	if err := enc.EncodeToken(xml.EndElement{Name: name}); err != nil {
-		return err
+	tokens = []xml.Token{
+		xml.EndElement{Name: sheetsName},
+		xml.EndElement{Name: workbookName},
 	}
-	return nil
+	return encodeTokens(tokens, enc)
 }

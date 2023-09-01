@@ -8,6 +8,7 @@ import (
 const (
 	RELOfficeDocument = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument"
 	RELWorksheet      = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet"
+	RELSharedStrings  = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings"
 )
 
 // A relationships part.
