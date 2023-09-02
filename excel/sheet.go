@@ -78,7 +78,7 @@ func (wks *Worksheet) MarshalXML(enc *xml.Encoder, root xml.StartElement) error 
 	}
 	slices.Sort(keys)
 
-	for i := range keys {
+	for _, i := range keys {
 		r := wks.rows[i]
 		if err := enc.EncodeElement(r, sheetDataStart); err != nil {
 			return err

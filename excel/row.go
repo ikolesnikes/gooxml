@@ -3,6 +3,8 @@ package excel
 import (
 	"encoding/xml"
 	"fmt"
+
+	"golang.org/x/exp/slices"
 )
 
 type row struct {
@@ -33,7 +35,19 @@ func (r *row) MarshalXML(enc *xml.Encoder, root xml.StartElement) error {
 		return err
 	}
 
-	for _, c := range r.cells {
+	// Write cells sorted out by index
+
+	// Get keys and sort them
+	keys := make([]int, len(r.cells))
+	i := 0
+	for k := range r.cells {
+		keys[i] = k
+		i++
+	}
+	slices.Sort(keys)
+
+	for _, i := range keys {
+		c := r.cells[i]
 		if err := enc.EncodeElement(c, rowStart); err != nil {
 			return err
 		}
