@@ -33,7 +33,7 @@ func (wks *Worksheet) AddText(s string, ri int, ci int) {
 
 	c := r.cells[ci]
 	if c == nil {
-		c = newCell()
+		c = newCell(ri, ci)
 		r.cells[ci] = c
 	}
 
