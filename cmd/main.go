@@ -14,8 +14,11 @@ func main() {
 	// The newly created document already contains a workbook
 	// and a worksheet.
 
-	// wkb := doc.Workbook()
+	wks := doc.Workbook().Worksheet(0)
+	wks.AddText("foo", 0, 0)
+	// wks.AddText("bar", 1, 0)
 
+	// wkb := doc.Workbook()
 	// Add second worksheet
 	// wkb.AddWorksheet()
 

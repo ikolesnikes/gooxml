@@ -1,49 +1,77 @@
 package excel
 
-import "encoding/xml"
+import (
+	"encoding/xml"
+	"fmt"
+)
 
 // A worksheet
 type Worksheet struct {
-	id  int
-	rel *relationship
+	id     int
+	wkbRel *relationship
+	wkb    *Workbook
+	rows   map[int]*row
 }
 
 // newWorksheet creates and initializes a new worksheet.
-func newWorksheet(id int, rel *relationship) *Worksheet {
+func newWorksheet(id int, rel *relationship, wkb *Workbook) *Worksheet {
 	wks := Worksheet{
-		id:  id,
-		rel: rel,
+		id:     id,
+		wkbRel: rel,
+		wkb:    wkb,
+		rows:   make(map[int]*row),
 	}
 	return &wks
 }
 
-func (wks *Worksheet) MarshalXML(enc *xml.Encoder, root xml.StartElement) error {
-	name := xml.Name{Local: "worksheet"}
+func (wks *Worksheet) AddText(s string, ri int, ci int) {
+	r := wks.rows[ri]
+	if r == nil {
+		r = newRow(ri)
+		wks.rows[ri] = r
+	}
 
-	start := xml.StartElement{
-		Name: name,
+	c := r.cells[ci]
+	if c == nil {
+		c = newCell()
+		r.cells[ci] = c
+	}
+
+	i := wks.wkb.sst.add(s)
+	c.text = fmt.Sprintf("%d", i)
+}
+
+func (wks *Worksheet) MarshalXML(enc *xml.Encoder, root xml.StartElement) error {
+	worksheetName := xml.Name{Local: "worksheet"}
+	sheetDataName := xml.Name{Local: "sheetData"}
+
+	worksheetStart := xml.StartElement{
+		Name: worksheetName,
 		Attr: []xml.Attr{
 			{Name: xml.Name{Local: "xmlns"}, Value: NSSpreadsheetML},
 		},
 	}
 
+	sheetDataStart := xml.StartElement{Name: sheetDataName}
+
 	tokens := []xml.Token{
 		xmlProlog,
-		start,
+		worksheetStart,
+		sheetDataStart,
 	}
 	if err := encodeTokens(tokens, enc); err != nil {
 		return err
 	}
 
-	e := xml.StartElement{Name: xml.Name{Local: "sheetData"}}
-	if err := enc.EncodeToken(e); err != nil {
-		return err
+	for _, r := range wks.rows {
+		if err := enc.EncodeElement(r, sheetDataStart); err != nil {
+			return err
+		}
 	}
-	if err := enc.EncodeToken(xml.EndElement{Name: xml.Name{Local: "sheetData"}}); err != nil {
-		return err
+
+	tokens = []xml.Token{
+		xml.EndElement{Name: sheetDataName},
+		xml.EndElement{Name: worksheetName},
 	}
-	if err := enc.EncodeToken(xml.EndElement{Name: name}); err != nil {
-		return err
-	}
-	return nil
+	return encodeTokens(tokens, enc)
 }

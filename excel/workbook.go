@@ -33,6 +33,11 @@ func (wkb *Workbook) addSharedStrings() {
 	wkb.doc.cts.add(newContentTypeOverride("/xl/sharedStrings.xml", CTSharedStrings))
 }
 
+// Worksheet returns a worksheet by its id.
+func (wkb *Workbook) Worksheet(id int) *Worksheet {
+	return wkb.sheets[id]
+}
+
 func (wkb *Workbook) AddWorksheet() {
 	// New worksheet's id and file name
 	id := wkb.newSheetID()
@@ -43,7 +48,7 @@ func (wkb *Workbook) AddWorksheet() {
 	wkb.rels.add(rel)
 
 	// Add new worksheet to the collection
-	wkb.sheets = append(wkb.sheets, newWorksheet(id, rel))
+	wkb.sheets = append(wkb.sheets, newWorksheet(id, rel, wkb))
 
 	// Worksheet's content-type entry
 	wkb.doc.cts.add(newContentTypeOverride(fmt.Sprintf("/xl/worksheets/%s", fName), CTWorksheet))
@@ -80,7 +85,7 @@ func (wkb *Workbook) MarshalXML(enc *xml.Encoder, root xml.StartElement) error {
 			Attr: []xml.Attr{
 				{Name: xml.Name{Local: "name"}, Value: fmt.Sprintf("Sheet%d", wks.id)},
 				{Name: xml.Name{Local: "sheetId"}, Value: fmt.Sprintf("%d", wks.id)},
-				{Name: xml.Name{Local: "r:id"}, Value: wks.rel.id},
+				{Name: xml.Name{Local: "r:id"}, Value: wks.wkbRel.id},
 			},
 		}
 		tokens := []xml.Token{
