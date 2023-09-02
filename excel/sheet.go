@@ -3,8 +3,7 @@ package excel
 import (
 	"encoding/xml"
 	"fmt"
-
-	"golang.org/x/exp/slices"
+	"slices"
 )
 
 // A worksheet
