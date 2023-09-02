@@ -16,21 +16,10 @@ func main() {
 
 	wks := doc.Workbook().Worksheet(0)
 	wks.AddText("foo", 0, 0)
-	wks.AddText("bar", 1, 0)
-	wks.AddText("foo", 2, 0)
-	wks.AddText("bar", 3, 0)
-
-	wks.AddText("foo", 0, 1)
-	wks.AddText("bar", 1, 2)
-	wks.AddText("foo", 2, 3)
-	wks.AddText("bar", 3, 4)
 
 	// Add second worksheet
 	doc.Workbook().AddWorksheet()
 	wks = doc.Workbook().Worksheet(1)
-	wks.AddText("foo", 0, 1)
-	wks.AddText("bar", 1, 2)
-	wks.AddText("foo", 2, 3)
 	wks.AddText("bar", 3, 4)
 
 	f, err := os.Create("/tmp/sample.xlsx")
