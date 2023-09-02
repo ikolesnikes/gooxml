@@ -16,6 +16,8 @@ func main() {
 
 	wks := doc.Workbook().Worksheet(0)
 	wks.AddText("foo", 0, 0)
+	wks.AddText("bar", 1, 0)
+	wks.AddText("foo", 2, 0)
 
 	// Add second worksheet
 	doc.Workbook().AddWorksheet()

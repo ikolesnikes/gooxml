@@ -5,47 +5,50 @@ import (
 	"fmt"
 )
 
-// Shared strings part.
+// Shared strings table.
 type sharedStrings struct {
-	st []stringEntry
+	items map[string]*stringItem
 }
 
-type stringEntry struct {
-	s string
-	c int
+// Item in the shared strings table.
+type stringItem struct {
+	text string
+
+	// Number of occurences of this item in the table.
+	// The equal items aren't duplicated.
+	count int
+
+	// Zero-based index of this item into the table.
+	index int
 }
 
-// newSharedStrings creates and initializes a new shared strings item.
+// newSharedStrings creates and initializes a new shared strings table.
 func newSharedStrings() *sharedStrings {
-	return &sharedStrings{}
+	return &sharedStrings{
+		items: make(map[string]*stringItem),
+	}
 }
 
-func (sst *sharedStrings) add(s string) int {
-	// Find string 's' in table
-	// Find string's 's' index in table
-
-	var i int
-	for i = 0; i < len(sst.st); i++ {
-		if s == sst.st[i].s {
-			break
+// add adds a new string item, containing the text, into the table.
+// Returns the item's index.
+func (sst *sharedStrings) add(text string) int {
+	si := sst.items[text]
+	if si == nil {
+		si = &stringItem{
+			text:  text,
+			index: len(sst.items),
 		}
+		sst.items[text] = si
 	}
-	if i == len(sst.st) {
-		// String 's' not found
-		sst.st = append(sst.st, stringEntry{s: s})
-		i = len(sst.st) - 1
-	}
-
-	sst.st[i].s = s
-	sst.st[i].c++
-	return i
+	si.count++
+	return si.index
 }
 
 // count counts total and unique strings in the table.
 func (sst *sharedStrings) count() (total int, unique int) {
-	for _, e := range sst.st {
-		total += e.c
-		if e.c == 1 {
+	for _, si := range sst.items {
+		total += si.count
+		if si.count == 1 {
 			unique++
 		}
 	}
@@ -73,13 +76,13 @@ func (sst *sharedStrings) MarshalXML(enc *xml.Encoder, root xml.StartElement) er
 		return err
 	}
 
-	for _, e := range sst.st {
+	for _, si := range sst.items {
 		siName := xml.Name{Local: "si"}
 		tName := xml.Name{Local: "t"}
 		tokens := []xml.Token{
 			xml.StartElement{Name: siName},
 			xml.StartElement{Name: tName},
-			xml.CharData(e.s),
+			xml.CharData(si.text),
 			xml.EndElement{Name: tName},
 			xml.EndElement{Name: siName},
 		}
