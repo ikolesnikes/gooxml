@@ -2,10 +2,9 @@ package excel
 
 import (
 	"encoding/xml"
-	"fmt"
 )
 
-// A worksheet's cell.
+// A cell in the worksheet.
 type cell struct {
 	// Text contained in the cell.
 	// If shared strings, this is an index into shared strings table.
@@ -30,7 +29,7 @@ func (c *cell) MarshalXML(enc *xml.Encoder, root xml.StartElement) error {
 	cStart := xml.StartElement{
 		Name: cName,
 		Attr: []xml.Attr{
-			{Name: xml.Name{Local: "r"}, Value: fmt.Sprintf("%c%d", 'A'+c.ci, c.ri+1)},
+			{Name: xml.Name{Local: "r"}, Value: makeRef(c.ri, c.ci)},
 			{Name: xml.Name{Local: "t"}, Value: "s"},
 		},
 	}
