@@ -3,6 +3,8 @@ package excel
 import (
 	"encoding/xml"
 	"fmt"
+
+	"golang.org/x/exp/slices"
 )
 
 // A worksheet
@@ -24,6 +26,8 @@ func newWorksheet(id int, rel *relationship, wkb *Workbook) *Worksheet {
 	return &wks
 }
 
+// AddText writes a string value into the cell. The cell
+// indexed by zero-based indexes.
 func (wks *Worksheet) AddText(s string, ri int, ci int) {
 	r := wks.rows[ri]
 	if r == nil {
@@ -63,7 +67,19 @@ func (wks *Worksheet) MarshalXML(enc *xml.Encoder, root xml.StartElement) error 
 		return err
 	}
 
-	for _, r := range wks.rows {
+	// Write rows sorted out by index
+
+	// Get keys and sort them
+	keys := make([]int, len(wks.rows))
+	i := 0
+	for k := range wks.rows {
+		keys[i] = k
+		i++
+	}
+	slices.Sort(keys)
+
+	for i := range keys {
+		r := wks.rows[i]
 		if err := enc.EncodeElement(r, sheetDataStart); err != nil {
 			return err
 		}
