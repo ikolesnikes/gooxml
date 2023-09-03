@@ -15,7 +15,7 @@ const (
 
 // A collection of content-type items.
 type contentTypes struct {
-	ctyps []*contentTypeConformant
+	items []contentTypeConformant
 }
 
 // newContentTypes creates and initializes a new content-types part.
@@ -27,7 +27,7 @@ func newContentTypes() *contentTypes {
 }
 
 func (cts *contentTypes) add(ct contentTypeConformant) {
-	cts.ctyps = append(cts.ctyps, &ct)
+	cts.items = append(cts.items, ct)
 }
 
 func (cts *contentTypes) MarshalXML(enc *xml.Encoder, root xml.StartElement) error {
@@ -48,7 +48,7 @@ func (cts *contentTypes) MarshalXML(enc *xml.Encoder, root xml.StartElement) err
 		return err
 	}
 
-	if err := enc.EncodeElement(cts.ctyps, start); err != nil {
+	if err := enc.EncodeElement(cts.items, start); err != nil {
 		return err
 	}
 
