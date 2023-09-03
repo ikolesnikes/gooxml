@@ -3,6 +3,7 @@ package main
 // Using gooxml module
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/ikolesnikes/gooxml/excel"
@@ -15,14 +16,14 @@ func main() {
 	// and a worksheet.
 
 	wks := doc.Workbook().Worksheet(0)
-	wks.AddText("foo", 0, 0)
-	wks.AddText("bar", 1, 0)
-	wks.AddText("foo", 2, 0)
-
-	// Add second worksheet
-	doc.Workbook().AddWorksheet()
-	wks = doc.Workbook().Worksheet(1)
-	wks.AddText("bar", 3, 4)
+	wks.AddText("n", 0, 0)
+	wks.AddText("n\xc2\xb2", 0, 1)
+	wks.AddText("n\xc2\xb3", 0, 2)
+	for i := 1; i <= 30; i++ {
+		wks.AddText(fmt.Sprintf("%d", i), i, 0)
+		wks.AddText(fmt.Sprintf("%d", i*i), i, 1)
+		wks.AddText(fmt.Sprintf("%d", i*i*i), i, 2)
+	}
 
 	f, err := os.Create("/tmp/sample.xlsx")
 	if err != nil {

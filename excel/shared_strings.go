@@ -1,8 +1,10 @@
 package excel
 
 import (
+	"cmp"
 	"encoding/xml"
 	"fmt"
+	"slices"
 )
 
 // Shared strings table.
@@ -76,7 +78,19 @@ func (sst *sharedStrings) MarshalXML(enc *xml.Encoder, root xml.StartElement) er
 		return err
 	}
 
+	// Sort items by index before encoding
+	// TODO: better way for managing string items: order by index, fast access
+	ordered := make([]*stringItem, len(sst.items))
+	i := 0
 	for _, si := range sst.items {
+		ordered[i] = si
+		i++
+	}
+	slices.SortFunc(ordered, func(a, b *stringItem) int {
+		return cmp.Compare(a.index, b.index)
+	})
+
+	for _, si := range ordered {
 		siName := xml.Name{Local: "si"}
 		tName := xml.Name{Local: "t"}
 		tokens := []xml.Token{
