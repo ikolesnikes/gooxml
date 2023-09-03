@@ -10,7 +10,6 @@ import (
 
 // A Document represents Excel's document package.
 type Document struct {
-	cts  *contentTypes
 	rels *relationships
 	wkb  *Workbook
 }
@@ -21,7 +20,6 @@ type Document struct {
 // Saving this document produces a valid .xlsx file.
 func NewDocument() *Document {
 	doc := Document{
-		cts:  newContentTypes(),
 		rels: newRelationships(),
 	}
 	doc.addWorkbook()
@@ -36,7 +34,6 @@ func (doc *Document) Workbook() *Workbook {
 func (doc *Document) addWorkbook() {
 	doc.wkb = newWorkbook(doc)
 	doc.rels.add(newRelationship(doc.rels.newID(), RELOfficeDocument, "xl/workbook.xml"))
-	doc.cts.add(newContentTypeOverride("/xl/workbook.xml", CTWorkbook))
 }
 
 // Save writes the document using the given writer. The written document is the
@@ -62,7 +59,6 @@ func (doc *Document) Save(w io.Writer) error {
 		body *bytes.Buffer
 	}
 	var parts = []*partDesc{
-		{"[Content_Types].xml", doc.cts, nil},
 		{"_rels/.rels", doc.rels, nil},
 		{"xl/workbook.xml", doc.wkb, nil},
 		{"xl/sharedStrings.xml", doc.wkb.sst, nil},
@@ -71,6 +67,16 @@ func (doc *Document) Save(w io.Writer) error {
 	for _, wks := range doc.wkb.sheets {
 		parts = append(parts, &partDesc{fmt.Sprintf("xl/worksheets/sheet%d.xml", wks.id), wks, nil})
 	}
+
+	// Make the content types part.
+	cts := newContentTypes()
+	cts.add(newContentTypeOverride("/xl/workbook.xml", CTWorkbook))
+	cts.add(newContentTypeOverride("/xl/sharedStrings.xml", CTSharedStrings))
+	for _, wks := range doc.wkb.sheets {
+		fName := fmt.Sprintf("sheet%d.xml", wks.id)
+		cts.add(newContentTypeOverride(fmt.Sprintf("/xl/worksheets/%s", fName), CTWorksheet))
+	}
+	parts = append(parts, &partDesc{"[Content_Types].xml", cts, nil})
 
 	// This can be done in parallel
 	var err error

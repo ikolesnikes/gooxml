@@ -29,8 +29,6 @@ func (wkb *Workbook) addSharedStrings() {
 
 	rel := newRelationship(wkb.rels.newID(), RELSharedStrings, "sharedStrings.xml")
 	wkb.rels.add(rel)
-
-	wkb.doc.cts.add(newContentTypeOverride("/xl/sharedStrings.xml", CTSharedStrings))
 }
 
 // Worksheet returns a worksheet by its id.
@@ -49,9 +47,6 @@ func (wkb *Workbook) AddWorksheet() {
 
 	// Add new worksheet to the collection
 	wkb.sheets = append(wkb.sheets, newWorksheet(id, rel, wkb))
-
-	// Worksheet's content-type entry
-	wkb.doc.cts.add(newContentTypeOverride(fmt.Sprintf("/xl/worksheets/%s", fName), CTWorksheet))
 }
 
 func (wkb *Workbook) newSheetID() int {
