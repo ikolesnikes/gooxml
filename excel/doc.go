@@ -39,44 +39,21 @@ func (doc *Document) addWorkbook() {
 // Save writes the document using the given writer. The written document is the
 // complete (and hopefully valid) .xlsx file.
 func (doc *Document) Save(w io.Writer) error {
-
-	// Find all parts that need to be encoded and encode them all here
-	// or...
-	// pass the 'save' command down each level...?
-	//
-	// At the document level (this, top-most level) there are
-	// content-types
-	// package relationships
-	// workbook
-	//
-	// At the workbook level there are
-	// workbook relationships
-	// worksheets
-
 	type partDesc struct {
 		path string
 		part xml.Marshaler
 		body *bytes.Buffer
 	}
 	var parts = []*partDesc{
-		{"_rels/.rels", doc.rels, nil},
-		{"xl/workbook.xml", doc.wkb, nil},
-		{"xl/sharedStrings.xml", doc.wkb.sst, nil},
-		{"xl/_rels/workbook.xml.rels", doc.wkb.rels, nil},
+		{path: "_rels/.rels", part: doc.rels},
+		{path: "xl/workbook.xml", part: doc.wkb},
+		{path: "xl/sharedStrings.xml", part: doc.wkb.sst},
+		{path: "xl/_rels/workbook.xml.rels", part: doc.wkb.rels},
 	}
 	for _, wks := range doc.wkb.sheets {
-		parts = append(parts, &partDesc{fmt.Sprintf("xl/worksheets/sheet%d.xml", wks.id), wks, nil})
+		parts = append(parts, &partDesc{path: fmt.Sprintf("xl/worksheets/sheet%d.xml", wks.id), part: wks})
 	}
-
-	// Make the content types part.
-	cts := newContentTypes()
-	cts.add(newContentTypeOverride("/xl/workbook.xml", CTWorkbook))
-	cts.add(newContentTypeOverride("/xl/sharedStrings.xml", CTSharedStrings))
-	for _, wks := range doc.wkb.sheets {
-		fName := fmt.Sprintf("sheet%d.xml", wks.id)
-		cts.add(newContentTypeOverride(fmt.Sprintf("/xl/worksheets/%s", fName), CTWorksheet))
-	}
-	parts = append(parts, &partDesc{"[Content_Types].xml", cts, nil})
+	parts = append(parts, &partDesc{path: "[Content_Types].xml", part: makeContentTypes(doc)})
 
 	// This can be done in parallel
 	var err error
@@ -99,4 +76,17 @@ func (doc *Document) Save(w io.Writer) error {
 		}
 	}
 	return z.Close()
+}
+
+// makeContentTypes creates the content types part. The part returned
+// is populated with all needed entries based on the given document.
+func makeContentTypes(doc *Document) *contentTypes {
+	cts := newContentTypes()
+	cts.add(newContentTypeOverride("/xl/workbook.xml", CTWorkbook))
+	cts.add(newContentTypeOverride("/xl/sharedStrings.xml", CTSharedStrings))
+	for _, wks := range doc.wkb.sheets {
+		fName := fmt.Sprintf("sheet%d.xml", wks.id)
+		cts.add(newContentTypeOverride(fmt.Sprintf("/xl/worksheets/%s", fName), CTWorksheet))
+	}
+	return cts
 }
