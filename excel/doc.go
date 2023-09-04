@@ -50,9 +50,9 @@ func (doc *Document) Save(w io.Writer) error {
 
 // Descriptor of a part being saved
 type partDesc struct {
-	path string
-	part xml.Marshaler
-	body *bytes.Buffer
+	path  string
+	marsh xml.Marshaler
+	body  *bytes.Buffer
 }
 
 // prepare prepares the document for writing. It generates the content
@@ -61,23 +61,23 @@ func prepare(doc *Document) []*partDesc {
 	cts := newContentTypes()
 
 	var parts = []*partDesc{
-		{path: "_rels/.rels", part: doc.rels},
-		{path: "xl/_rels/workbook.xml.rels", part: doc.wkb.rels},
+		{path: "_rels/.rels", marsh: doc.rels},
+		{path: "xl/_rels/workbook.xml.rels", marsh: doc.wkb.rels},
 	}
 
-	parts = append(parts, &partDesc{path: "xl/workbook.xml", part: doc.wkb})
+	parts = append(parts, &partDesc{path: "xl/workbook.xml", marsh: doc.wkb})
 	cts.add(newContentTypeOverride("/xl/workbook.xml", CTWorkbook))
 
 	for _, wks := range doc.wkb.sheets {
 		fName := fmt.Sprintf("sheet%d.xml", wks.id)
-		parts = append(parts, &partDesc{path: fmt.Sprintf("xl/worksheets/%s", fName), part: wks})
+		parts = append(parts, &partDesc{path: fmt.Sprintf("xl/worksheets/%s", fName), marsh: wks})
 		cts.add(newContentTypeOverride(fmt.Sprintf("/xl/worksheets/%s", fName), CTWorksheet))
 	}
 
-	parts = append(parts, &partDesc{path: "xl/sharedStrings.xml", part: doc.wkb.sst})
+	parts = append(parts, &partDesc{path: "xl/sharedStrings.xml", marsh: doc.wkb.sst})
 	cts.add(newContentTypeOverride("/xl/sharedStrings.xml", CTSharedStrings))
 
-	parts = append(parts, &partDesc{path: "[Content_Types].xml", part: cts})
+	parts = append(parts, &partDesc{path: "[Content_Types].xml", marsh: cts})
 	return parts
 }
 
@@ -88,7 +88,7 @@ func encode(parts []*partDesc) error {
 	for _, part := range parts {
 		go func(part *partDesc) {
 			var err error
-			part.body, err = encodePart(part.part)
+			part.body, err = encodePart(part.marsh)
 			errch <- err
 		}(part)
 	}
