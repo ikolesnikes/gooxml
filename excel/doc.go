@@ -85,8 +85,10 @@ func prepare(doc *Document) []*partDesc {
 			}
 		}
 	}
-	parts = append(parts, &partDesc{path: "xl/sharedStrings.xml", marsh: sst})
-	cts.add(newContentTypeOverride("/xl/sharedStrings.xml", CTSharedStrings))
+	if len(sst.items) > 0 {
+		parts = append(parts, &partDesc{path: "xl/sharedStrings.xml", marsh: sst})
+		cts.add(newContentTypeOverride("/xl/sharedStrings.xml", CTSharedStrings))
+	}
 
 	parts = append(parts, &partDesc{path: "[Content_Types].xml", marsh: cts})
 	return parts
