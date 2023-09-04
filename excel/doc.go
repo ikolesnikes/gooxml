@@ -82,7 +82,7 @@ func prepare(doc *Document) []*partDesc {
 }
 
 // encode encodes all parts to XML making them ready for writing.
-// Returns an error if any of the parts couldn't be encoded.
+// Returns an error if any part couldn't be encoded.
 func encode(parts []*partDesc) error {
 	errch := make(chan error)
 	for _, part := range parts {
