@@ -81,12 +81,19 @@ func prepare(doc *Document) []*partDesc {
 	return parts
 }
 
-// encode encodes each part to XML making them ready for writing.
+// encode encodes all parts to XML making them ready for writing.
+// Returns an error if any of the parts couldn't be encoded.
 func encode(parts []*partDesc) error {
-	// This can be done in parallel
-	var err error
+	errch := make(chan error)
 	for _, part := range parts {
-		part.body, err = encodePart(part.part)
+		go func(part *partDesc) {
+			var err error
+			part.body, err = encodePart(part.part)
+			errch <- err
+		}(part)
+	}
+	for _ = range parts {
+		err := <-errch
 		if err != nil {
 			return err
 		}
