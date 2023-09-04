@@ -92,7 +92,7 @@ func encode(parts []*partDesc) error {
 			errch <- err
 		}(part)
 	}
-	for _ = range parts {
+	for range parts {
 		err := <-errch
 		if err != nil {
 			return err
