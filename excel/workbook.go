@@ -10,7 +10,6 @@ type Workbook struct {
 	doc    *Document
 	rels   *relationships
 	sheets []*Worksheet
-	sst    *sharedStrings
 }
 
 // newWorkbook creates and initializes a new Workbook.
@@ -25,8 +24,6 @@ func newWorkbook(doc *Document) *Workbook {
 }
 
 func (wkb *Workbook) addSharedStrings() {
-	wkb.sst = newSharedStrings()
-
 	rel := newRelationship(wkb.rels.newID(), RELSharedStrings, "sharedStrings.xml")
 	wkb.rels.add(rel)
 }
@@ -46,7 +43,7 @@ func (wkb *Workbook) AddWorksheet() {
 	wkb.rels.add(rel)
 
 	// Add new worksheet to the collection
-	wkb.sheets = append(wkb.sheets, newWorksheet(id, rel, wkb))
+	wkb.sheets = append(wkb.sheets, newWorksheet(id, rel))
 }
 
 func (wkb *Workbook) newSheetID() int {

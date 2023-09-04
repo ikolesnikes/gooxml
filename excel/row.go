@@ -6,20 +6,21 @@ import (
 	"slices"
 )
 
-type row struct {
+// A row inside Excel's worksheet.
+type Row struct {
 	index int
-	cells map[int]*cell
+	cells map[int]*Cell
 }
 
-func newRow(i int) *row {
-	r := row{
+func newRow(i int) *Row {
+	r := Row{
 		index: i,
-		cells: make(map[int]*cell),
+		cells: make(map[int]*Cell),
 	}
 	return &r
 }
 
-func (r *row) MarshalXML(enc *xml.Encoder, root xml.StartElement) error {
+func (r *Row) MarshalXML(enc *xml.Encoder, root xml.StartElement) error {
 	rowName := xml.Name{Local: "row"}
 
 	rowStart := xml.StartElement{

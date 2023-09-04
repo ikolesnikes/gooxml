@@ -74,7 +74,18 @@ func prepare(doc *Document) []*partDesc {
 		cts.add(newContentTypeOverride(fmt.Sprintf("/xl/worksheets/%s", fName), CTWorksheet))
 	}
 
-	parts = append(parts, &partDesc{path: "xl/sharedStrings.xml", marsh: doc.wkb.sst})
+	// Build the shared strings table.
+	sst := newSharedStrings()
+	for _, wks := range doc.wkb.sheets {
+		for _, r := range wks.rows {
+			for _, c := range r.cells {
+				// Add cell's text to the table
+				// and replace cell's text with the string's index.
+				c.text = fmt.Sprintf("%d", sst.add(c.text))
+			}
+		}
+	}
+	parts = append(parts, &partDesc{path: "xl/sharedStrings.xml", marsh: sst})
 	cts.add(newContentTypeOverride("/xl/sharedStrings.xml", CTSharedStrings))
 
 	parts = append(parts, &partDesc{path: "[Content_Types].xml", marsh: cts})

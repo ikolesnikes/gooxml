@@ -1,15 +1,19 @@
 package excel
 
 import (
-	"cmp"
 	"encoding/xml"
 	"fmt"
-	"slices"
 )
 
 // Shared strings table.
 type sharedStrings struct {
 	items map[string]*stringItem
+
+	// Linked list of strings added to the table.
+	// It is used to maintain the insertion order and
+	// write an ordered (by index) set of strings to XML.
+	first *stringItem
+	last  *stringItem
 }
 
 // Item in the shared strings table.
@@ -22,6 +26,8 @@ type stringItem struct {
 
 	// Zero-based index of this item into the table.
 	index int
+
+	next *stringItem
 }
 
 // newSharedStrings creates and initializes a new shared strings table.
@@ -41,6 +47,14 @@ func (sst *sharedStrings) add(text string) int {
 			index: len(sst.items),
 		}
 		sst.items[text] = si
+
+		if sst.first == nil {
+			sst.first = si
+			sst.last = si
+		} else {
+			sst.last.next = si
+			sst.last = si
+		}
 	}
 	si.count++
 	return si.index
@@ -78,19 +92,7 @@ func (sst *sharedStrings) MarshalXML(enc *xml.Encoder, root xml.StartElement) er
 		return err
 	}
 
-	// Sort items by index before encoding
-	// TODO: better way for managing string items: order by index, fast access
-	ordered := make([]*stringItem, len(sst.items))
-	i := 0
-	for _, si := range sst.items {
-		ordered[i] = si
-		i++
-	}
-	slices.SortFunc(ordered, func(a, b *stringItem) int {
-		return cmp.Compare(a.index, b.index)
-	})
-
-	for _, si := range ordered {
+	for si := sst.first; si != nil; si = si.next {
 		siName := xml.Name{Local: "si"}
 		tName := xml.Name{Local: "t"}
 		tokens := []xml.Token{

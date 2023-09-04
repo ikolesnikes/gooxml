@@ -16,16 +16,20 @@ func main() {
 	// and a worksheet.
 
 	wks := doc.Workbook().Worksheet(0)
-	wks.AddText("n", 0, 0)
-	wks.AddText("n\xc2\xb2", 0, 1)
-	wks.AddText("n\xc2\xb3", 0, 2)
+
+	wks.SetText("n", 0, 0)
+	wks.SetText("n\xc2\xb2", 0, 1)
+	wks.SetText("n\xc2\xb3", 0, 2)
 	for i := 1; i <= 30; i++ {
-		wks.AddText(fmt.Sprintf("%d", i), i, 0)
-		wks.AddText(fmt.Sprintf("%d", i*i), i, 1)
-		wks.AddText(fmt.Sprintf("%d", i*i*i), i, 2)
+		x := i
+		wks.SetText(fmt.Sprintf("%d", x), i, 0)
+		x *= i
+		wks.SetText(fmt.Sprintf("%d", x), i, 1)
+		x *= i
+		wks.SetText(fmt.Sprintf("%d", x), i, 2)
 	}
 
-	f, err := os.Create("/tmp/sample.xlsx")
+	f, err := os.Create("sample.xlsx")
 	if err != nil {
 		panic(err)
 	}

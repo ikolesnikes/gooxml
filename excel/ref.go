@@ -2,9 +2,9 @@ package excel
 
 import "fmt"
 
-// makeRef creates the A1 style reference out of given row and
-// column zero-based indexes.
-func makeRef(ri, ci int) string {
+// makeA1Ref creates the A1 style reference out of given row and
+// column zero-based indices.
+func makeA1Ref(ri, ci int) string {
 	return fmt.Sprintf("%s%d", indexToColumnName(ci), ri+1)
 }
 

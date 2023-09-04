@@ -2,32 +2,29 @@ package excel
 
 import (
 	"encoding/xml"
-	"fmt"
 	"slices"
 )
 
-// A worksheet
+// A worksheet inside Excel's workbook.
 type Worksheet struct {
 	id     int
 	wkbRel *relationship
-	wkb    *Workbook
-	rows   map[int]*row
+	rows   map[int]*Row
 }
 
 // newWorksheet creates and initializes a new worksheet.
-func newWorksheet(id int, rel *relationship, wkb *Workbook) *Worksheet {
+func newWorksheet(id int, rel *relationship) *Worksheet {
 	wks := Worksheet{
 		id:     id,
 		wkbRel: rel,
-		wkb:    wkb,
-		rows:   make(map[int]*row),
+		rows:   make(map[int]*Row),
 	}
 	return &wks
 }
 
-// AddText writes a string value into the cell. The cell
-// indexed by zero-based indexes.
-func (wks *Worksheet) AddText(s string, ri int, ci int) {
+// SetText writes a string value into the cell.
+// Row and cell indices are zero-based.
+func (wks *Worksheet) SetText(t string, ri int, ci int) {
 	r := wks.rows[ri]
 	if r == nil {
 		r = newRow(ri)
@@ -40,8 +37,7 @@ func (wks *Worksheet) AddText(s string, ri int, ci int) {
 		r.cells[ci] = c
 	}
 
-	i := wks.wkb.sst.add(s)
-	c.text = fmt.Sprintf("%d", i)
+	c.SetText(t)
 }
 
 func (wks *Worksheet) MarshalXML(enc *xml.Encoder, root xml.StartElement) error {
