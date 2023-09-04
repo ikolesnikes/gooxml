@@ -60,6 +60,13 @@ type partDesc struct {
 func prepare(doc *Document) []*partDesc {
 	cts := newContentTypes()
 
+	// Start building shared strings table.
+	sstch := make(chan *sharedStrings)
+	go func() {
+		sst := buildSharedStrings(doc)
+		sstch <- sst
+	}()
+
 	var parts = []*partDesc{
 		{path: "_rels/.rels", marsh: doc.rels},
 		{path: "xl/_rels/workbook.xml.rels", marsh: doc.wkb.rels},
@@ -74,7 +81,17 @@ func prepare(doc *Document) []*partDesc {
 		cts.add(newContentTypeOverride(fmt.Sprintf("/xl/worksheets/%s", fName), CTWorksheet))
 	}
 
-	// Build the shared strings table.
+	sst := <-sstch
+	if len(sst.items) > 0 {
+		parts = append(parts, &partDesc{path: "xl/sharedStrings.xml", marsh: sst})
+		cts.add(newContentTypeOverride("/xl/sharedStrings.xml", CTSharedStrings))
+	}
+
+	parts = append(parts, &partDesc{path: "[Content_Types].xml", marsh: cts})
+	return parts
+}
+
+func buildSharedStrings(doc *Document) *sharedStrings {
 	sst := newSharedStrings()
 	for _, wks := range doc.wkb.sheets {
 		for _, r := range wks.rows {
@@ -85,13 +102,7 @@ func prepare(doc *Document) []*partDesc {
 			}
 		}
 	}
-	if len(sst.items) > 0 {
-		parts = append(parts, &partDesc{path: "xl/sharedStrings.xml", marsh: sst})
-		cts.add(newContentTypeOverride("/xl/sharedStrings.xml", CTSharedStrings))
-	}
-
-	parts = append(parts, &partDesc{path: "[Content_Types].xml", marsh: cts})
-	return parts
+	return sst
 }
 
 // encode encodes all parts to XML making them ready for writing.
