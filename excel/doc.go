@@ -108,7 +108,8 @@ func buildSharedStrings(doc *Document) *sharedStrings {
 // encode encodes all parts to XML making them ready for writing.
 // Returns an error if any part couldn't be encoded.
 func encode(parts []*partDesc) error {
-	errch := make(chan error)
+	// Each part sends on the channel without blocking and terminates.
+	errch := make(chan error, len(parts))
 	for _, part := range parts {
 		go func(part *partDesc) {
 			var err error
