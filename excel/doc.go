@@ -96,9 +96,8 @@ func buildSharedStrings(doc *Document) *sharedStrings {
 	for _, wks := range doc.wkb.sheets {
 		for _, r := range wks.rows {
 			for _, c := range r.cells {
-				// Add cell's text to the table
-				// and replace cell's text with the string's index.
-				c.text = fmt.Sprintf("%d", sst.add(c.text))
+				i := sst.add(c.text)
+				c.sstIndex = i
 			}
 		}
 	}

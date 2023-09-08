@@ -2,12 +2,18 @@ package excel
 
 import (
 	"encoding/xml"
+	"strconv"
 )
 
 // A Cell in the worksheet.
 type Cell struct {
 	// Text contained in the cell.
 	text string
+
+	// Cell's text index in the shared strings.
+	// This is being set during document save.
+	// After the save it's not guaranteed to be valid.
+	sstIndex int
 
 	// Row and column indices of this cell.
 	ri, ci int
@@ -39,7 +45,7 @@ func (c *Cell) MarshalXML(enc *xml.Encoder, root xml.StartElement) error {
 			},
 		},
 		xml.StartElement{Name: xml.Name{Local: "v"}},
-		xml.CharData(c.text),
+		xml.CharData(strconv.Itoa(c.sstIndex)),
 		xml.EndElement{Name: xml.Name{Local: "v"}},
 		xml.EndElement{Name: cName},
 	}
