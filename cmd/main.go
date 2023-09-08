@@ -33,9 +33,21 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	defer f.Close()
 
 	if err = doc.Save(f); err != nil {
 		panic(err)
 	}
+	f.Close()
+
+	/*wks.SetText("After save", 0, 4)
+
+	f, err = os.Create("sample.xlsx")
+	if err != nil {
+		panic(err)
+	}
+
+	if err = doc.Save(f); err != nil {
+		panic(err)
+	}
+	f.Close()*/
 }
